@@ -37,10 +37,8 @@ int main(int argc, char *argv[])
 
   while (in_file.read(&buf, 1))
   {
-    std::cout << "read " << buf << "\n";
     if (first_unique.has_value())
     {
-      std::cout << "option has a value\n";
       if (first_unique.value() == buf)
       {
         if (curr_count < std::numeric_limits<unsigned char>::digits)
@@ -56,23 +54,18 @@ int main(int argc, char *argv[])
       }
       else
       {
-        std::cout << "123\n";
         out_file.write(reinterpret_cast<const char *>(&curr_count), sizeof(curr_count));
-        std::cout << "4567\n";
         out_file.write(reinterpret_cast<const char *>(&first_unique.value()), 1);
-        std::cout << "you make me feel like 11\n";
         first_unique = buf;
         curr_count = 1;
       }
     }
     else
     {
-      std::cout << "first run of program\n";
       // first byte in the file
       first_unique = buf;
       curr_count = 1;
     }
   }
 
-  std::cout << bytes << "\n";
 }
