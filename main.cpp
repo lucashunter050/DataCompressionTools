@@ -6,6 +6,8 @@
 #include <optional>
 #include <limits>
 
+const std::string ENCODED_SUFFIX = ".encoded";
+
 void usage()
 {
   std::cout << "./kompress <mode encode/decode (-e/-d)> <filename>\n";
@@ -13,12 +15,10 @@ void usage()
 
 void encode_RLE(std::string fname)
 {
-  std::cout << "encoding " << fname << "\n";
-  // std::regex extension_pattern("\\w*.\w");
 
   std::ifstream in_file(fname, std::ios::binary);
 
-  std::ofstream out_file("rLEcompressedtest", std::ios::binary);
+  std::ofstream out_file(fname + ".encoded", std::ios::binary);
 
   std::optional<char> first_unique;
 
@@ -60,25 +60,35 @@ void encode_RLE(std::string fname)
 
   out_file.write(reinterpret_cast<const char *>(&curr_count), sizeof(curr_count));
   out_file.write(reinterpret_cast<const char *>(&first_unique.value()), 1);
-
 }
 
 void decodeRLE(std::string fname)
 {
-  std::cout << "decoding " << fname << "\n";
-  std::ifstream encoded_file(fname);
-  std::ofstream decoded_file("decoded_" + fname + ".decoded");
+
+  std::ifstream encoded_file(fname, std::ios::binary);
+  std::string output_filename = fname.substr(fname.find_last_of("/") + 1);
+
+  if (output_filename.ends_with(ENCODED_SUFFIX))
+  {
+    output_filename = output_filename.substr(0, output_filename.size() - ENCODED_SUFFIX.size());
+  }
+
+  std::ofstream decoded_file(output_filename, std::ios::binary);
+
+  if (!decoded_file.is_open())
+  {
+    std::cerr << "Error: Could not create output file: " << fname + ".decoded" << "\n";
+    return;
+  }
 
   char buf[2];
   while (encoded_file.read(buf, sizeof(buf)))
   {
     unsigned char count = static_cast<unsigned char>(buf[0]);
     char character = buf[1];
-    std::cout << "read buffer\n";
-    std::cout << "writing " << character << " " << static_cast<int>(count) << " times\n";
     for (int i = 0; i < count; ++i)
     {
-      decoded_file.write(&buf[1], 1);
+      decoded_file.write(&character, 1);
     }
   }
 }
